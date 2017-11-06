@@ -43,6 +43,7 @@ public class LoadRankingServiceImpl extends AbstractLoad implements LoadRankingS
                 continue;
             }
         }
+        LOGGER.finest(String.format("Parsed %d from the atp website", getAtpService().getAtpRankings().size()));
     }
 
     @Override
