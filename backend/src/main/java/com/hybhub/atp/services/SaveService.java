@@ -8,4 +8,5 @@ public interface SaveService extends IOService {
     boolean saveMatchesToFile(final boolean append);
     boolean saveRankingsToFile();
     boolean saveToFile(final Set objs, final String fileName);
+    void setFilesPath(final String filesPath);
 }
