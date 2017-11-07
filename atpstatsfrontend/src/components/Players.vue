@@ -12,18 +12,35 @@
         </div>
       </div>
     </section>
-    <section class="section">
+    <section class="section is-medium">
       <div class="container">
-        <input v-model="search" placeholder="Search for player" class="input" type="text">
+        <p class="title is-1">ATP Ranking from 1 to 10</p>
+        <p class="subtitle is-3">{{ date }}</p>
+        <a class="button is-medium" v-on:click="moveBackwardRankingsDate()">Previous Week</a>
+        <a class="button is-medium">Next Week</a>
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <td>Ranking</td>
+              <td>Name</td>
+              <td>Points</td>
+              <td>Tournaments played</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in rankingsOneToTen">
+              <td>{{ r.ranking }}</td>
+              <td>{{ playersMap[r.playerId].name }}</td>
+              <td>{{ r.points }}</td>
+              <td>{{ r.tournamentPlayed }}</td>            
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
     <section class="section">
       <div class="container">
-        <ul>
-          <li v-for="i in 10">
-            {{rankings[i]}}
-          </li>
-        </ul>
+        <input v-model="search" placeholder="Search for player" class="input" type="text">
       </div>
     </section>
     <div class="tile is-ancestor" v-for="i in Math.ceil(players.length / tileSize)">
@@ -56,6 +73,8 @@ export default {
       matches: matches,
       rankingsDate: moment().day('Monday'),
       rankings: new Map(),
+      rankingsOneToTen: [],
+      date: '',
       search: '',
       currentPlayerMatches: null
     }
@@ -68,12 +87,28 @@ export default {
         })
     },
     getRankings: function (date) {
-      axios.get('static/rankings' + date.year() + (date.month() + 1) + date.date() + '.json').then(response => {
-        this.rankings = response.data.reduce(function (map, obj) {
-          map[obj.ranking] = obj
-          return map
+      var url = 'https://raw.githubusercontent.com/bvanalderweireldt/tennisstats/master/data/rankings'
+      axios.get(url + date.year() + (date.month() + 1) + date.format('DD') + '.json')
+        .then(response => {
+          this.rankings = response.data.reduce(function (map, obj) {
+            map[obj.ranking] = obj
+            return map
+          })
+          for (var i = 1; i <= 10; i++) {
+            this.rankingsOneToTen.push(this.rankings[i])
+          }
+          this.date = this.rankingsDate.format('YYYY MM DD')
         })
-      })
+        .catch(function (error) {
+          console.log(error)
+        })
+    },
+    moveBackwardRankingsDate: function () {
+      this.rankingsDate = this.rankingsDate.subtract(7, 'days')
+      this.getRankings(this.rankingsDate)
+    },
+    moveForwardRankingsDate: function () {
+      this.rankingsDate = this.rankingsDate.add(7, 'days')
     }
   },
   computed: {
@@ -106,7 +141,7 @@ export default {
   },
   mounted: function () {
     this.$nextTick(function () {
-      this.getRankings(moment().day('Monday'))
+      this.getRankings(this.rankingsDate)
     })
   }
 }

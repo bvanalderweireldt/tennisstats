@@ -1,5 +1,6 @@
 package com.hybhub.atp;
 
+import com.hybhub.atp.services.AtpService;
 import com.hybhub.atp.services.LoadRankingService;
 import com.hybhub.atp.services.SaveService;
 import org.apache.commons.cli.*;
@@ -8,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +46,12 @@ public class Run {
                 .build();
         options.addOption(dirProperty);
 
+        final Option rankingDateProperty = Option.builder( "rankingDate" )
+                .numberOfArgs(1)
+                .desc("Ranking date to parse if not last Monday (format : yyyy-mm-dd)")
+                .build();
+        options.addOption(rankingDateProperty);
+
         final Option commandToRun = Option.builder("cmd")
                 .required()
                 .hasArg()
@@ -63,9 +71,15 @@ public class Run {
                 run.getApplicationContext().getBean(SaveService.class).setFilesPath(cli.getOptionValue("dir"));
             }
 
+            if(cli.hasOption("rankingDate")){
+                final LocalDate rankingDate = LocalDate.parse(cli.getOptionValue("rankingDate"));
+                run.getApplicationContext().getBean(AtpService.class).setAtpRankingsDate(rankingDate);
+            }
+
             if(cli.getOptionValue("cmd").equalsIgnoreCase("rankings")){
                 run.loadRankings();
             }
+
         } catch (ParseException e) {
             final HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp( "Atp parser", options );
