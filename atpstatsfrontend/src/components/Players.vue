@@ -2,6 +2,7 @@
   <div>
     <section class="section">
       <div class="container">
+        <h1 class="title">Today's birthday(s)</h1>
         <div class="tile is-ancestor" v-for="player in dobFilter">
             <article class="tile box is-primary notification is-14 is-child">
               <div class="content">
@@ -17,7 +18,7 @@
         <p class="title is-1">ATP Ranking from 1 to 10</p>
         <p class="subtitle is-3">{{ date }}</p>
         <a class="button is-medium" v-on:click="moveBackwardRankingsDate()">Previous Week</a>
-        <a class="button is-medium">Next Week</a>
+        <a class="button is-medium" v-on:click="moveForwardRankingsDate()">Next Week</a>
         <table class="table is-fullwidth">
           <thead>
             <tr>
@@ -86,29 +87,39 @@ export default {
           return match.winner === playerId || match.loser === playerId
         })
     },
-    getRankings: function (date) {
+    getRankings: function (dateToGet) {
       var url = 'https://raw.githubusercontent.com/bvanalderweireldt/tennisstats/master/data/rankings'
-      axios.get(url + date.year() + (date.month() + 1) + date.format('DD') + '.json')
+      axios.get(url + dateToGet.year() + (dateToGet.month() + 1) + dateToGet.format('DD') + '.json')
         .then(response => {
           this.rankings = response.data.reduce(function (map, obj) {
             map[obj.ranking] = obj
             return map
           })
+          this.rankingsOneToTen = []
           for (var i = 1; i <= 10; i++) {
             this.rankingsOneToTen.push(this.rankings[i])
           }
-          this.date = this.rankingsDate.format('YYYY MM DD')
+          this.date = dateToGet.format('YYYY MM DD')
+          this.rankingsDate = dateToGet
         })
-        .catch(function (error) {
+        .catch(error => {
           console.log(error)
+          this.displayError('No ranking available for ' + dateToGet.format('YYYY MM DD'))
         })
     },
     moveBackwardRankingsDate: function () {
-      this.rankingsDate = this.rankingsDate.subtract(7, 'days')
-      this.getRankings(this.rankingsDate)
+      this.getRankings(moment(this.rankingsDate).subtract(7, 'days'))
     },
     moveForwardRankingsDate: function () {
-      this.rankingsDate = this.rankingsDate.add(7, 'days')
+      this.getRankings(moment(this.rankingsDate).add(7, 'days'))
+    },
+    displayError: function (msg) {
+      this.$notify({
+        group: 'foo',
+        title: 'Error',
+        type: 'error',
+        text: msg
+      })
     }
   },
   computed: {
