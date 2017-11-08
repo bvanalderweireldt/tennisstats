@@ -10,8 +10,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Arrays;
+import java.util.logging.*;
 
 public class Run {
 
@@ -35,6 +35,9 @@ public class Run {
 
     public static void main(String[] args) throws IOException {
         final Run run = new Run();
+
+        System.setProperty("java.util.logging.SimpleFormatter.format",
+                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL %4$-7s [%3$s] (%2$s) %5$s %6$s%n");
 
         final Options options = new Options();
         final Option debug = new Option( "debug", "print debugging information" );
@@ -64,7 +67,13 @@ public class Run {
             final CommandLine cli = commandLineParser.parse(options, args);
 
             if(cli.hasOption("debug")){
-                Logger.getGlobal().setLevel(Level.FINEST);
+                final Handler handler = new ConsoleHandler();
+                handler.setLevel(Level.FINEST);
+                handler.setFormatter(new SimpleFormatter());
+
+                final Logger logger = Logger.getLogger("com.hybhub");
+                logger.addHandler(handler);
+                logger.setLevel(Level.FINEST);
             }
 
             if(cli.hasOption("dir")){
@@ -82,6 +91,7 @@ public class Run {
 
         } catch (ParseException e) {
             final HelpFormatter formatter = new HelpFormatter();
+            Logger.getGlobal().warning(e.getMessage());
             formatter.printHelp( "Atp parser", options );
         }
     }
