@@ -30,65 +30,65 @@ import java.util.stream.Collectors;
 @Component
 public abstract class AbstractLoad implements IOService {
 
-    private final static Logger LOGGER = Logger.getLogger(AbstractLoad.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(AbstractLoad.class.getName());
 
-    private final static int MAX_HTTP_RETRY = 5;
+    private static final int MAX_HTTP_RETRY = 5;
 
-    final static String ATP_URL = "http://www.atpworldtour.com/";
+    static final String ATP_URL = "http://www.atpworldtour.com/";
 
-    final static String ATP_URL_EN = ATP_URL + "en/";
+    static final String ATP_URL_EN = ATP_URL + "en/";
 
-    final static String ATP_WORLD_TOUR_PLAYERS_URL = "http://www.atpworldtour.com/en/rankings/singles?rankRange=%d-%d";
+    static final String ATP_WORLD_TOUR_PLAYERS_URL = "http://www.atpworldtour.com/en/rankings/singles?rankRange=%d-%d";
 
-    final static String ATP_WORLD_TOUR_PLAYERS_DATE_URL = ATP_WORLD_TOUR_PLAYERS_URL + "&rankDate=%d-%d-%d";
+    static final String ATP_WORLD_TOUR_PLAYERS_DATE_URL = ATP_WORLD_TOUR_PLAYERS_URL + "&rankDate=%d-%d-%d";
 
-    final static String ATP_WORLD_TOUR_PLAYER_URL = "http://www.atpworldtour.com/en/players/abc/%s/overview";
+    static final String ATP_WORLD_TOUR_PLAYER_URL = "http://www.atpworldtour.com/en/players/abc/%s/overview";
 
-    final static String ATP_TOURNAMENTS_URL = ATP_URL_EN + "scores/results-archive?year=%d";
+    static final String ATP_TOURNAMENTS_URL = ATP_URL_EN + "scores/results-archive?year=%d";
 
-    final static String ATP_TOURNAMENT_RESULTS_URL = ATP_URL_EN + "scores/archive/%s/results";
+    static final String ATP_TOURNAMENT_RESULTS_URL = ATP_URL_EN + "scores/archive/%s/results";
 
-    final static String ATP_MATCH_URL = ATP_URL_EN + "scores/%s/match-stats";
+    static final String ATP_MATCH_URL = ATP_URL_EN + "scores/%s/match-stats";
 
-    final static Pattern PLAYER_ID_PARSER = Pattern.compile("/\\w+/\\w+/[^/]+/(?<id>\\w+)/\\w+");
+    static final Pattern PLAYER_ID_PARSER = Pattern.compile("/\\w+/\\w+/[^/]+/(?<id>\\w+)/\\w+");
 
-    final static Pattern MATCH_ID_PARSER = Pattern.compile("/\\w+/\\w+/(?<matchid>\\d+/\\d+/\\w+)/match-stats");
+    static final Pattern MATCH_ID_PARSER = Pattern.compile("/\\w+/\\w+/(?<matchid>\\d+/\\d+/\\w+)/match-stats");
 
-    final static Pattern TOURNAMENT_ID_PARSER = Pattern.compile("/\\w+/(?<id>[^/]+/[^/]+/[^/]+)/results$");
+    static final Pattern TOURNAMENT_ID_PARSER = Pattern.compile("/\\w+/(?<id>[^/]+/[^/]+/[^/]+)/results$");
 
-    final static Pattern NUMBER_PARSER = Pattern.compile("(?<number>\\d+)");
+    static final Pattern NUMBER_PARSER = Pattern.compile("(?<number>\\d+)");
 
-    final static Pattern DOB_PARSER = Pattern.compile("(?:(?<year>\\d{4})\\.(?<month>\\d{2})\\.(?<day>\\d{2}))");
+    static final Pattern DOB_PARSER = Pattern.compile("(?:(?<year>\\d{4})\\.(?<month>\\d{2})\\.(?<day>\\d{2}))");
 
-    final static Pattern DATE_START_PARSER = Pattern.compile("(?<year>\\d{4})\\.(?<month>\\d{2})\\.(?<day>\\d{2}) - \\d{4}\\.\\d{2}\\.\\d{2}");
+    static final Pattern DATE_START_PARSER = Pattern.compile("(?<year>\\d{4})\\.(?<month>\\d{2})\\.(?<day>\\d{2}) - \\d{4}\\.\\d{2}\\.\\d{2}");
 
-    final static Pattern DATE_END_PARSER = Pattern.compile("\\d{4}\\.\\d{2}\\.\\d{2} - (?<year>\\d{4})\\.(?<month>\\d{2})\\.(?<day>\\d{2})");
+    static final Pattern DATE_END_PARSER = Pattern.compile("\\d{4}\\.\\d{2}\\.\\d{2} - (?<year>\\d{4})\\.(?<month>\\d{2})\\.(?<day>\\d{2})");
 
-    final static Pattern HANDEDNESS_PARSER = Pattern.compile("(?<handedness>Right|Left|AMBIDEXTROUS)(?:-Handed)?", Pattern.CASE_INSENSITIVE);
+    static final Pattern HANDEDNESS_PARSER = Pattern.compile("(?<handedness>Right|Left|AMBIDEXTROUS)(?:-Handed)?", Pattern.CASE_INSENSITIVE);
 
-    final static Pattern BACKHAND_PARSER = Pattern.compile("(?<backhand>Two|One)-Handed Backhand", Pattern.CASE_INSENSITIVE);
+    static final Pattern BACKHAND_PARSER = Pattern.compile("(?<backhand>Two|One)-Handed Backhand", Pattern.CASE_INSENSITIVE);
 
-    final static Pattern MATCH_DURATION_PARSER = Pattern.compile("Time: (?<hours>\\d+):(?<minutes>\\d+):(?<seconds>\\d+)");
+    static final Pattern MATCH_DURATION_PARSER = Pattern.compile("Time: (?<hours>\\d+):(?<minutes>\\d+):(?<seconds>\\d+)");
 
-    final static Pattern TOURNAMENT_TYPE = Pattern.compile("/-/media/images/tourtypes/(categorystamps_)?(?<tournamentType>itf|250|500|1000s|grandslam|nitto_atp_finals|atpwt|challenger)_");
+    static final Pattern TOURNAMENT_TYPE = Pattern.compile("/-/media/images/tourtypes/(categorystamps_)?(?<tournamentType>itf|250|500|1000s|grandslam|nitto_atp_finals|atpwt|challenger)_");
 
-    final static Function<Element,String> ABS_HREF =
+    static final Function<Element,String> ABS_HREF =
             (element) -> element.attr("abs:href");
 
-    final static Function<Elements, List<String>> ABS_HREFS =
+    static final Function<Elements, List<String>> ABS_HREFS =
             (elements) -> elements.stream()
                         .map(ABS_HREF::apply)
                         .filter(StringUtils::isNotBlank)
                         .collect(Collectors.toList());
 
-    final static Function<Element, String> TEXT = Element::text;
+    static final Function<Element, String> TEXT = Element::text;
 
-    final static BiFunction<Element, String, String> TEXT_Q =
+    static final BiFunction<Element, String, String> TEXT_Q =
             (e, q) -> TEXT.apply(e.select(q).first());
 
-    final static List<Function<Element, String>> GUESS_FUNCTIONS = Arrays.asList(TEXT, ABS_HREF);
+    static final List<Function<Element, String>> GUESS_FUNCTIONS = Arrays.asList(TEXT, ABS_HREF);
 
-    final static BiFunction<Element, List<String>, String> GUESS =
+    static final BiFunction<Element, List<String>, String> GUESS =
             (element, selectors) -> {
                 String toReturn;
                 for(String selector : selectors){
@@ -109,7 +109,6 @@ public abstract class AbstractLoad implements IOService {
     @Autowired
     AtpService atpService;
 
-
     Document loadDocument(final String url, Object... objects) {
         int retries = 0;
         while(retries < MAX_HTTP_RETRY) {
@@ -122,10 +121,9 @@ public abstract class AbstractLoad implements IOService {
                         .get();
             } catch (HttpStatusException h) {
                 LOGGER.warning(String.format("Http status is not ok : %s (%s), will retry (%d attempts sor far)", h.getStatusCode(), String.format(url,objects), retries));
-                retries =+ 1;
+                retries += 1;
             } catch (IOException e) {
                 LOGGER.severe(e.getMessage());
-                throw new IOError(e);
             }
         }
         throw new IllegalStateException(String.format("Couldn't load the document for url %s", url));

@@ -23,10 +23,6 @@ public class LoadMatchServiceImpl extends AbstractLoad implements LoadMatchServi
 
     private static Logger LOGGER = Logger.getLogger(LoadMatchServiceImpl.class.getName());
 
-    @Autowired
-    AtpService atpService;
-
-
     @Override
     public void loadMatchesFromFile() {
         atpService.getAtpMatches().addAll(loadObjectsFromFile(MATCHES_FILE, DefaultMatch.class));
