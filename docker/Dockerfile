@@ -6,6 +6,7 @@ RUN apt-get update && \
 ADD --chown=root:root ssh.tar /root/
 
 COPY gitconfig root/.gitconfig
+COPY .ssh ~/.ssh
 
 RUN cd /root/ && \
     eval "$(ssh-agent)" && \
